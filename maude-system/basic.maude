@@ -41,12 +41,10 @@ fmod ENTAILMENT is
 
 endfm
 
-
-
 eof
+--- Entailments
 red ('a , 'b  /\ 'c , 'd) |-- 'c .
 red ('a , 'b  /\ 'c , 'd) |-- 'e .
 red 'a /\ 'b /\ 'c /\ 'd |-- 'a /\ 'b .
 red 'a /\ 'b /\ 'c /\ 'd |-- 'a /\ 'b /\ 'c .
-
 red 'a /\ 'b /\ 'c /\ 'd |-- 'a /\ 'b /\ 'e .

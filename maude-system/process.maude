@@ -1,3 +1,53 @@
 mod PROCESS is
-   .
+  protecting ENTAILMENT .
+  sort Process .
+
+  op skip : -> Process .
+  op tell : Constraint -> Process .
+  op ask_then_ : Constraint Process -> Process .
+  op _||_ : Process Process -> Process .
+
 endm
+
+view Process from TRIV to PROCESS is
+    sort Elt to Process .
+endv
+
+mod SET-PROCESS is
+    protecting SET{Process} .
+
+    op _/_ : Process Process -> Set{Process} .
+
+    var L : Set{Process} .
+
+    eq skip || L = L .
+endm
+
+mod STORE is   --- TIRAR DUVIDA SOBRE ISSO, NOME MERAMENTE ILUSTRATIVO
+  pr SET-PROCESS .
+  sort Store .
+
+  op _;_ : Set{Process} Set{Constraint} -> Store [ctor] .
+
+  var Lp : Set{Process} .
+  vars P Q : Process .
+  vars C C' : Constraint .
+  var Lc : Set{Constraint} .
+
+  eq (Lp , tell(C)) ; Lc = Lp ; (Lc, C) .
+
+  ceq (Lp , ask C then P) ; Lc = (Lp, P) ; Lc if Lc |-- C .
+
+  eq (Lp, P / Q) ; Lc = (Lp, P, Q) ; Lc .
+
+
+
+
+endm
+
+
+eof
+red (tell ( 'a ), tell( 'b )) ; 'c' .
+red ask 'a then tell('b) ; 'a .
+red ask 'b then tell('b) ; 'a .
+red (tell ('a) / (tell ('c))) ; 'b .

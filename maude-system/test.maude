@@ -1,0 +1,184 @@
+fmod ATOM is
+  pr QID .
+  sort Atom .
+  subsort Qid < Atom .
+endfm
+
+fmod CONSTRAINT is
+  pr ATOM .
+  sort Constraint .
+  subsort Atom < Constraint .
+  op True : -> Constraint [ctor] .
+  op _/\_ : Constraint Constraint -> Constraint .
+endfm
+
+view Constraint from TRIV to CONSTRAINT is
+    sort Elt to Constraint .
+endv
+
+fmod SET-CONSTRAINT is
+    protecting SET{Constraint} .
+endfm
+
+fmod ENTAILMENT is
+  pr BOOL-OPS .
+  pr SET-CONSTRAINT .
+  pr CONSTRAINT .
+
+  op _|--_ : Set{Constraint} Constraint -> Bool .
+
+  vars L L' : Set{Constraint} .
+  vars C C' : Constraint .
+  vars a b : Atom .
+
+  eq (L , C /\ C')  |-- L' = (L , C , C') |-- L' .
+
+  eq L |-- True = true .
+  eq (L, a) |-- a = true .
+  eq L |-- b = false [owise] .
+
+  eq L |-- C /\ C' = L |-- C and L |-- C' .
+
+endfm
+
+mod SET*{X :: TRIV} is
+  protecting EXT-BOOL .
+  protecting NAT .
+  sorts Element{X} PreSet{X} NeSet{X} Set{X} .
+  subsort X$Elt Set{X} < Element{X} < PreSet{X} .
+  subsort NeSet{X} < Set{X} .
+
+  op _,_ : PreSet{X} PreSet{X} -> PreSet{X} [ctor assoc comm prec 121 format (d r os d)] .
+  op {_} : PreSet{X} -> NeSet{X} [ctor] .
+  op {} : -> Set{X} [ctor] .
+
+  vars P Q : PreSet{X} .
+  vars A S : Set{X} .
+  var E : Element{X} .
+  var N : NeSet{X} .
+  var C : Nat .
+
+  eq {P, P} = {P} .
+  eq {P, P, Q} = {P, Q} .
+
+  op insert : Element{X} Set{X} -> Set{X} .
+  eq insert(E, {}) = {E} .
+  eq insert(E, {P}) = {E, P} .
+
+  op delete : Element{X} Set{X} -> Set{X} .
+  eq delete(E, {E}) = {} .
+  eq delete(E, {E, P}) = delete(E, {P}) .
+  eq delete(E, S) = S [owise] .
+
+  op _in_ : Element{X} Set{X} -> Bool .
+  eq E in {E} = true .
+  eq E in {E, P} = true .
+  eq E in S = false [owise] .
+
+  op |_| : Set{X} -> Nat .
+  op |_| : NeSet{X} -> NzNat .
+  eq | {} | = 0 .
+  eq | {P} | = $card(P, 0) .
+
+  op $card : PreSet{X} Nat -> Nat .
+  eq $card(E, C) = C + 1 .
+  eq $card((N, N, P), C) = $card((N, P), C) .
+  eq $card((E, P), C) = $card(P, C + 1) [owise] .
+
+  op union : Set{X} Set{X} -> Set{X} .
+  op union : NeSet{X} Set{X} -> NeSet{X} .
+  op union : Set{X} NeSet{X} -> NeSet{X} .
+  eq union({}, S) = S .
+  eq union(S, {}) = S .
+  eq union({P}, {Q}) = {P, Q} .
+
+  op intersection : Set{X} Set{X} -> Set{X} .
+  eq intersection({}, S) = {} .
+  eq intersection(S, {}) = {} .
+  eq intersection({P}, N) = $intersect(P, N, {}) .
+
+  op $intersect : PreSet{X} Set{X} Set{X} -> Set{X} .
+  eq $intersect(E, S, A) = if E in S then insert(E, A) else A fi .
+  eq $intersect((E, P), S, A) = $intersect(P, S, $intersect(E, S, A)) .
+
+  op _\_ : Set{X} Set{X} -> Set{X} [gather (E e)] .
+  eq {} \ S = {} .
+  eq S \ {} = S .
+  eq {P} \ N = $diff(P, N, {}) .
+
+  op $diff : PreSet{X} Set{X} Set{X} -> Set{X} .
+  eq $diff(E, S, A) = if E in S then A else insert(E, A) fi .
+  eq $diff((E, P), S, A) = $diff(P, S, $diff(E, S, A)) .
+
+  op 2^_ : Set{X} -> Set{X} .
+  eq 2^{} = {{}} .
+  eq 2^{E} = {{}, {E}} .
+  eq 2^{E, P} = union(2^{P}, $augment(2^{P}, E, {})) .
+
+  op $augment : NeSet{X} Element{X} Set{X} -> Set{X} .
+  eq $augment({S}, E, A) = insert(insert(E, S), A) .
+  eq $augment({S, P}, E, A) = $augment({P}, E, $augment({S}, E, A)) .
+
+  op _subset_ : Set{X} Set{X} -> Bool .
+  eq {} subset S = true .
+  eq {E} subset S = E in S .
+  eq {E, P} subset S = E in S and-then {P} subset S .
+
+  op _psubset_ : Set{X} Set{X} -> Bool .
+  eq A psubset S = A =/= S and-then A subset S .
+endm
+
+
+mod PROCESS is
+  protecting ENTAILMENT .
+  sort Process .
+
+  op skip : -> Process .
+  op tell : Constraint -> Process .
+  op ask_then_ : Constraint Process -> Process .
+  op _||_ : Process Process -> Process .
+
+endm
+
+view Process from TRIV to PROCESS is
+    sort Elt to Process .
+endv
+
+mod SET-PROCESS is
+    protecting SET{Process} .
+
+    op _/_ : Process Process -> Set{Process} .
+
+    var L : Set{Process} .
+
+    eq skip || L = L .
+endm
+
+mod STORE is   --- TIRAR DUVIDA SOBRE ISSO, NOME MERAMENTE ILUSTRATIVO
+  pr SET-PROCESS .
+  sort Store .
+
+  op _;_ : Set{Process} Set{Constraint} -> Store [ctor] .
+
+  var Lp : Set{Process} .
+  vars P Q : Process .
+  vars C C' : Constraint .
+  var Lc : Set{Constraint} .
+
+  eq (Lp , tell(C)) ; Lc = Lp ; (Lc, C) .
+
+  ceq (Lp , ask C then P) ; Lc = (Lp, P) ; Lc if Lc |-- C .
+
+  eq (Lp, P / Q) ; Lc = (Lp, P, Q) ; Lc .
+
+
+
+
+endm
+
+
+eof
+red (tell ( 'a ), tell( 'b )) ; 'c' .
+red ask 'a then tell('b) ; 'a .
+red ask 'b then tell('b) ; 'a .
+red (tell ('a) / (tell ('c))) ; 'b .
