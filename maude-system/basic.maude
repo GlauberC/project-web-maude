@@ -33,9 +33,9 @@ fmod ENTAILMENT is
 
   eq (L , C /\ C')  |-- L' = (L , C , C') |-- L' .
 
-  eq (L , C) |-- True = true .
+  eq L |-- True = true .
   eq (L, a) |-- a = true .
-  eq (L, a) |-- b = false [owise] .
+  eq L |-- b = false [owise] .
 
   eq L |-- C /\ C' = L |-- C and L |-- C' .
 
