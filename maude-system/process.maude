@@ -5,7 +5,6 @@ mod PROCESS is
   op skip : -> Process .
   op tell : Constraint -> Process .
   op ask_then_ : Constraint Process -> Process .
-  op _||_ : Process Process -> Process .
 
 endm
 
@@ -20,7 +19,7 @@ mod SET-PROCESS is
 
     var L : Set{Process} .
 
-    eq skip || L = L .
+    eq (skip,  L) = L .
 endm
 
 mod STORE is   --- TIRAR DUVIDA SOBRE ISSO, NOME MERAMENTE ILUSTRATIVO
@@ -34,7 +33,7 @@ mod STORE is   --- TIRAR DUVIDA SOBRE ISSO, NOME MERAMENTE ILUSTRATIVO
   vars C C' : Constraint .
   var Lc : Set{Constraint} .
 
-  eq (Lp , tell(C)) ; Lc = Lp ; (Lc, C) .
+  eq (Lp , tell(C)) ; Lc = (Lp , skip) ; (Lc, C) .
 
   ceq (Lp , ask C then P) ; Lc = (Lp, P) ; Lc if Lc |-- C .
 
