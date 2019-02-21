@@ -1,10 +1,15 @@
+load mset.maude
+load basic.maude
+
 mod PROCESS is
   protecting ENTAILMENT .
   sort Process .
 
+  op _||_ : Process Process -> Process [ctor] .
   op skip : -> Process .
   op tell : Constraint -> Process .
   op ask_then_ : Constraint Process -> Process .
+  op _/_ : Process Process -> Process .
 
 endm
 
@@ -12,41 +17,36 @@ view Process from TRIV to PROCESS is
     sort Elt to Process .
 endv
 
-mod SET-PROCESS is
-    protecting SET{Process} .
+mod MSET-PROCESS is
+    protecting MSET{Process} .
 
-    op _/_ : Process Process -> Set{Process} .
-
-    var L : Set{Process} .
+    var L : Mset{Process} .
 
     eq (skip,  L) = L .
+
 endm
 
-mod STORE is   --- TIRAR DUVIDA SOBRE ISSO, NOME MERAMENTE ILUSTRATIVO
-  pr SET-PROCESS .
-  sort Store .
+mod CONFIG is   --- TIRAR DUVIDA SOBRE ISSO, NOME MERAMENTE ILUSTRATIVO
+  pr MSET-PROCESS .
+  sort Config .
 
-  op _;_ : Set{Process} Set{Constraint} -> Store [ctor] .
+  op <_;_> : Mset{Process} Set{Constraint} -> Config [ctor] .
 
-  var Lp : Set{Process} .
+  var Lp : Mset{Process} .
   vars P Q : Process .
   vars C C' : Constraint .
   var Lc : Set{Constraint} .
 
-  eq (Lp , tell(C)) ; Lc = (Lp , skip) ; (Lc, C) .
+  rl [tell] : < (Lp , tell(C)) ; Lc > => < (Lp , skip) ; (Lc, C) > .
 
-  ceq (Lp , ask C then P) ; Lc = (Lp, P) ; Lc if Lc |-- C .
+  crl [askthen] : < (Lp , ask C then P) ; Lc > => < (Lp, P)  ; Lc > if Lc |-- C .
 
-  eq (Lp, P / Q) ; Lc = (Lp, P, Q) ; Lc .
-
-
-
-
+  rl [paralel] : < (Lp, P / Q) ; Lc > => < (Lp, P, Q) ; Lc > .
 endm
 
 
 eof
-red (tell ( 'a ), tell( 'b )) ; 'c' .
-red ask 'a then tell('b) ; 'a .
-red ask 'b then tell('b) ; 'a .
-red (tell ('a) / (tell ('c))) ; 'b .
+rew [1] < tell('a) ; 'b > .
+rew [1] < ask 'b then tell('c) ; 'b > .
+
+    --- DUVIDA => Deveria ser rl para contar como mais uma etapa de reescrita ?
