@@ -6,10 +6,8 @@ mod PROCESS is
   sort Process .
 
   op _||_ : Process Process -> Process [ctor] .
-  op skip : -> Process .
   op tell : Constraint -> Process .
   op ask_then_ : Constraint Process -> Process .
-  op _/_ : Process Process -> Process .
 
 endm
 
@@ -18,11 +16,9 @@ view Process from TRIV to PROCESS is
 endv
 
 mod MSET-PROCESS is
-    protecting MSET{Process} .
+    protecting MSET{Process} * ( op _,_ : NeMset{X} Mset{X} -> NeMset{X} to _/v1/_ , op _,_ : Mset{X} Mset{X} -> Mset{X} to _/v2/_ ) .
 
     var L : Mset{Process} .
-
-    eq (skip,  L) = L .
 
 endm
 
@@ -37,13 +33,18 @@ mod CONFIG is   --- TIRAR DUVIDA SOBRE ISSO, NOME MERAMENTE ILUSTRATIVO
   vars C C' : Constraint .
   var Lc : Set{Constraint} .
 
-  rl [tell] : < (Lp , tell(C)) ; Lc > => < (Lp , skip) ; (Lc, C) > .
+  rl [tell] : < (Lp , tell(C)) ; Lc > => < (Lp) ; (Lc, C) > .
 
   crl [askthen] : < (Lp , ask C then P) ; Lc > => < (Lp, P)  ; Lc > if Lc |-- C .
 
-  rl [paralel] : < (Lp, P / Q) ; Lc > => < (Lp, P, Q) ; Lc > .
+  rl [paralel] : < (Lp, P || Q) ; Lc > => < (Lp, P, Q) ; Lc > .
 endm
 
+mod META-CONFIG is
+  pr CONFIG .
+  pr META-LEVEL .
+
+endm
 
 eof
 rew [1] < tell('a) ; 'b > .

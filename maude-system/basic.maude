@@ -1,3 +1,5 @@
+load set.maude
+
 fmod ATOM is
   pr QID .
   sort Atom .
@@ -17,7 +19,7 @@ view Constraint from TRIV to CONSTRAINT is
 endv
 
 fmod SET-CONSTRAINT is
-    protecting SET{Constraint} .
+    pr SET{Constraint} * ( op _,_ : NeSet{X} Set{X} -> NeSet{X} to _/v1/_ , op _,_ : Set{X} Set{X} -> Set{X} to _/v2/_ ) .
 endfm
 
 fmod ENTAILMENT is
