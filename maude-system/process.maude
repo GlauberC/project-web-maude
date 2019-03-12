@@ -5,6 +5,7 @@ mod PROCESS is
   protecting ENTAILMENT .
   sort Process .
 
+  op skip : -> Process .
   op _||_ : Process Process -> Process [ctor] .
   op tell : Constraint -> Process .
   op ask_then_ : Constraint Process -> Process .
@@ -16,13 +17,10 @@ view Process from TRIV to PROCESS is
 endv
 
 mod MSET-PROCESS is
-    protecting MSET{Process} * ( op _,_ : NeMset{X} Mset{X} -> NeMset{X} to _/v1/_ , op _,_ : Mset{X} Mset{X} -> Mset{X} to _/v2/_ ) .
-
-    var L : Mset{Process} .
-
+    protecting MSET{Process} .
 endm
 
-mod CONFIG is   --- TIRAR DUVIDA SOBRE ISSO, NOME MERAMENTE ILUSTRATIVO
+mod CONFIG is
   pr MSET-PROCESS .
   sort Config .
 
@@ -42,12 +40,30 @@ endm
 
 mod META-CONFIG is
   pr CONFIG .
-  pr META-LEVEL .
+  pr NAT .
+  pr META-LEVEL * (op empty to emptyML , op _\_ to _\M\_ , op _,_ to _C_ , op insert to insert' , op delete to delete', op _in_ to _in'_, op |_| to ||_||, op $card to $card', op union to union' , op intersection to intersection' , op $intersect to $intersect', op $diff to $diff', op _subset_ to _subset'_ , op _psubset_ to _psubset'_ ) .
 
+  op metaREW : Config Nat -> Config .
+  var C : Config .
+  var i : Nat .
+  eq metaREW( C, i ) = downTerm(getTerm(metaRewrite(upModule('META-CONFIG, false) , upTerm( C ), i)), < skip ; True >) .
 endm
 
 eof
 rew [1] < tell('a) ; 'b > .
 rew [1] < ask 'b then tell('c) ; 'b > .
 
-    --- DUVIDA => Deveria ser rl para contar como mais uma etapa de reescrita ?
+red metaREW( < tell('a) ; 'b > , 1) .
+red metaREW(< ask 'b then tell('c) ; 'b > , 1) .
+red metaREW(< ask 'b then tell('c) ; 'b > , 2) .
+
+
+
+red upTerm( < tell('a) ; 'b > ) .
+red downTerm(upTerm( < tell('a) ; 'b > ) ) .
+red upModule(upTerm( 'META-CONFIG ), false )  .
+red metaRewrite(upModule('META-CONFIG, false) , upTerm( < tell('a) ; 'b > ), 1) .
+red getTerm(metaRewrite(upModule('META-CONFIG, false) , upTerm( < tell('a) ; 'b > ), 1)) .
+red downTerm(getTerm(metaRewrite(upModule('META-CONFIG, false) , upTerm( < tell('a) ; 'b > ), 1)), < skip ; True >) .
+
+red downTerm(getTerm(metaRewrite(upModule('META-CONFIG, false) , upTerm( < ask 'b then tell('c) ; 'b > ), 1)), < skip ; True >) .

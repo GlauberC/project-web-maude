@@ -1,10 +1,11 @@
 class CommandMaude{
-    constructor(command){
-        this._command = command;
+    constructor(config, inc){
+        this.config = config;
+        this.inc = inc;
         
     }
 
-    get command(){
-        return this._command;
+    get metaSParameters(){
+        return this.config + ' , ' + this.inc;
     }
 }

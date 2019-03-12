@@ -23,18 +23,23 @@
             <h1>LCC Maude Web View</h1>
             <form class="form" onsubmit="commandMaudeController.submit(event)" >
                 <div class = "form-group">
-                    <div class = "inputCommandDiv">
-                        <label for = "command">Command Maude: </label>
-                        <input class = "form-control command form-control" value = "rew [1] < ( ) ; ( ) >">
+                    <div class = "inputCommandDiv row">
+                        <div class = col-sm-2>
+                            <label for = "inc">increment: </label>
+                            <input class = "form-control inc form-control" type="number" min="0" value = "1">
+                        </div>
+                        <div class = col-sm-10>
+                            <label for = "config">Configuration: </label>
+                            <input class = "form-control config form-control" value = "< (  ) ; (  ) >">
+                        </div>
                     </div><br>
                     
                     <button type="submit" class = "btn-button btn-primary"> Submit</button>
                 </div>
             </form>
             <div class="card-body card-process">
-                <h4 class="card-title"><em>Command:</em> <span class = "card-process-header"></span></h4>
-                <p class="card-text card-process-body"></p>
-                <p class="card-text"><em>Response:</em> <span class = "card-process-footer"></span></p>
+                <p class="card-title"><em>Command:</em> <span class = "card-process-header"></span></p>
+                <h4 class="card-text card-process-body"></h4>
 
             </div>
             
