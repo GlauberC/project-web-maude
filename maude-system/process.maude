@@ -35,7 +35,7 @@ mod CONFIG is
 
   crl [askthen] : < (Lp , ask C then P) ; Lc > => < (Lp, P)  ; Lc > if Lc |-- C .
 
-  rl [paralel] : < (Lp, P || Q) ; Lc > => < (Lp, P, Q) ; Lc > .
+  eq < (Lp, P || Q) ; Lc > = < (Lp, P, Q) ; Lc > .
 endm
 
 mod META-CONFIG is
@@ -43,21 +43,35 @@ mod META-CONFIG is
   pr NAT .
   pr META-LEVEL * (op empty to emptyML , op _\_ to _\M\_ , op _,_ to _C_ , op insert to insert' , op delete to delete', op _in_ to _in'_, op |_| to ||_||, op $card to $card', op union to union' , op intersection to intersection' , op $intersect to $intersect', op $diff to $diff', op _subset_ to _subset'_ , op _psubset_ to _psubset'_ ) .
 
-  op metaREW : Config Nat -> Config .
+  op error : -> Config [ctor] .
+  op metaRed : Config -> Config .
+  op metaRew : Config Nat -> Config .
+  op metaApp : Config Qid Substitution -> Config .
+
   var C : Config .
   var i : Nat .
-  eq metaREW( C, i ) = downTerm(getTerm(metaRewrite(upModule('META-CONFIG, false) , upTerm( C ), i)), < skip ; True >) .
+  var S : Substitution .
+  var rule : Qid .
+
+  eq metaApp(C, rule, S) = downTerm(getTerm(metaApply(upModule('META-CONFIG, false), upTerm( C ), rule, S, 0)), error) .
+  eq metaRed( C ) = downTerm(getTerm(metaReduce(upModule('META-CONFIG, false), upTerm( C ))), error) .
+  eq metaRew( C, i ) = downTerm(getTerm(metaRewrite(upModule('META-CONFIG, false) , upTerm( C ), i)), error) .
+
+
+
 endm
 
 eof
 rew [1] < tell('a) ; 'b > .
 rew [1] < ask 'b then tell('c) ; 'b > .
 
-red metaREW( < tell('a) ; 'b > , 1) .
-red metaREW(< ask 'b then tell('c) ; 'b > , 1) .
-red metaREW(< ask 'b then tell('c) ; 'b > , 2) .
+red metaRew( < tell('a) ; 'b > , 1) .
+red metaRew(< ask 'b then tell('c) ; 'b > , 1) .
+red metaRew(< ask 'b then tell('c) ; 'b > , 2) .
 
-
+red metaRed(< tell( 'a ) || tell( 'b ) ; 'a > ) .
+red metaApp(< (tell('c) , tell('d /\ 'f), tell('e)  ) ; True >, 'tell, ( 'C:Constraint  <- upTerm('d /\ 'f ) )) .
+red metaApp( < ask 'c then tell('d) , ask 'd then tell('e) ; 'c >, 'askthen, ('C:Constraint <- upTerm('c) ; 'P:Process <- upTerm(tell('d)) ) ) .
 
 red upTerm( < tell('a) ; 'b > ) .
 red downTerm(upTerm( < tell('a) ; 'b > ) ) .
